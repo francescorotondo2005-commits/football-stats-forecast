@@ -1,0 +1,18 @@
+# dati scaricati e modelli addestrati: si rigenerano con download e train
+data/
+models/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# segreti e configurazioni locali
+.env
+.env.*
+
+# sistema
+.DS_Store
+Thumbs.db
