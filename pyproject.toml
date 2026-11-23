@@ -1,0 +1,16 @@
+[project]
+name = "footstats"
+version = "0.1.0"
+description = "Previsione di statistiche di partita di calcio con intervalli di previsione calibrati"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.1",
+    "scipy>=1.11",
+    "scikit-learn>=1.4",
+    "joblib>=1.3",
+    "matplotlib>=3.8",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
