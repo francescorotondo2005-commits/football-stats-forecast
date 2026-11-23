@@ -77,6 +77,20 @@ def test_long_break_vs_relegation(pause_days, new_spell):
     assert (feats.loc[after, "n_prev"] == 0).any() == new_spell
 
 
+def test_features_depend_only_on_own_league():
+    """predict.py calcola le feature solo sul campionato della partita: deve dare lo stesso risultato."""
+    other = _synthetic_matches(seed=1)
+    other["league"] = "premier-league"
+    other[["home", "away"]] = other[["home", "away"]].replace({"A": "E", "B": "F", "C": "G", "D": "H"})
+    long = to_team_rows(pd.concat([_synthetic_matches(), other], ignore_index=True))
+    cols, keys = _all_feature_cols(), ["match_id", "team"]
+
+    together = build_features(long)
+    together = together[together["league"] == "serie-a"].set_index(keys)[cols].sort_index()
+    alone = build_features(long[long["league"] == "serie-a"]).set_index(keys)[cols].sort_index()
+    pd.testing.assert_frame_equal(together, alone)
+
+
 def test_opponent_features_come_from_the_opponent():
     feats = build_features(to_team_rows(_synthetic_matches()))
     m = feats[feats.match_id == feats.match_id.iloc[-1]]

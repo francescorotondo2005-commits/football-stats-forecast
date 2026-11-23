@@ -34,7 +34,11 @@ def predict_match(league: str, home: str, away: str, level: float = DEFAULT_LEVE
 
     long = to_team_rows(load_matches())
     home, away = resolve_team(home, league, long), resolve_team(away, league, long)
-    feats = build_features(add_future_match(long, league, home, away))
+    # Le feature di una partita dipendono solo dal suo campionato (medie delle squadre, dei loro
+    # avversari e del campionato): calcolarle anche sugli altri quattro le lascerebbe identiche
+    # (lo verifica tests/test_features.py) e costerebbe circa 5 volte tanto.
+    league_rows = long[long["league"] == league]
+    feats = build_features(add_future_match(league_rows, league, home, away))
     rows = feats.tail(2)  # le due righe della partita futura: casa e ospite
 
     out = []
@@ -49,7 +53,9 @@ def predict_match(league: str, home: str, away: str, level: float = DEFAULT_LEVE
             out.append({"squadra": row.team, "statistica": STAT_LABELS_IT[stat], "atteso": mu,
                         "min": int(lo[0]), "max": int(hi[0]), "prob": prob})
     result = pd.DataFrame(out)
-    result.attrs.update(home=home, away=away, level=level, data_until=bundle["last_dates"].get(league))
+    # la data dei dati usati per le feature: dopo un `download` può essere più recente dell'ultimo `train`
+    data_until = league_rows["date"].max().strftime("%Y-%m-%d")
+    result.attrs.update(home=home, away=away, level=level, data_until=data_until)
     return result
 
 
