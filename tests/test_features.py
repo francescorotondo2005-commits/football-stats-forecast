@@ -83,3 +83,5 @@ def test_opponent_features_come_from_the_opponent():
     home, away = m[m.is_home == 1].iloc[0], m[m.is_home == 0].iloc[0]
     assert home["o_shots_against_l"] == pytest.approx(away["t_shots_against_l"])
     assert away["o_shots_against_l"] == pytest.approx(home["t_shots_against_l"])
+    assert home["o_shots_adjagainst"] == pytest.approx(away["t_shots_adjagainst"])
+    assert away["o_shots_adjfor"] == pytest.approx(home["t_shots_adjfor"])

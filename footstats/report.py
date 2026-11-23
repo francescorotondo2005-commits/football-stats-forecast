@@ -36,8 +36,8 @@ def write_markdown(results: dict) -> str:
         "",
         "## Errore medio assoluto (MAE) del valore atteso",
         "",
-        "| Statistica | Media campionato | Media mobile | GLM Poisson | Gradient Boosting | Scelto (in validazione) | Miglioramento vs media mobile |",
-        "|---|---|---|---|---|---|---|",
+        "| Statistica | Media campionato | Media mobile | GLM Poisson | Gradient Boosting | Ensemble | Scelto (in validazione) | Miglioramento vs media mobile |",
+        "|---|---|---|---|---|---|---|---|",
     ]
     for stat, r in results.items():
         f = r["families"]
@@ -46,7 +46,7 @@ def write_markdown(results: dict) -> str:
         gain = 1 - mae[chosen] / mae["media mobile"]
         lines.append(
             f"| {STAT_LABELS_IT[stat]} | {mae['media campionato']:.3f} | {mae['media mobile']:.3f} | "
-            f"{mae['GLM Poisson']:.3f} | {mae['Gradient Boosting']:.3f} | {chosen} | {gain:.1%} |"
+            f"{mae['GLM Poisson']:.3f} | {mae['Gradient Boosting']:.3f} | {mae['Ensemble']:.3f} | {chosen} | {gain:.1%} |"
         )
     lines += [
         "",

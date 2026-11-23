@@ -107,6 +107,28 @@ class PoissonGBM:
         return self.model.predict(X)
 
 
+class Ensemble:
+    """Media delle previsioni di GLM e gradient boosting.
+
+    I due modelli sbagliano in modo diverso (il GLM è più stabile, il boosting coglie le
+    interazioni): la media dei due è spesso migliore di ciascuno preso da solo.
+    """
+
+    name = "Ensemble"
+
+    def __init__(self, glm: PoissonGLM, gbm: PoissonGBM, w_glm: float = 0.5):
+        self.glm, self.gbm, self.w_glm = glm, gbm, w_glm
+        self.params = {"glm_alpha": glm.alpha, **{f"gbm_{k}": v for k, v in gbm.params.items()}, "w_glm": w_glm}
+
+    def fit(self, X, y, sample_weight=None):
+        self.glm.fit(X, y, sample_weight)
+        self.gbm.fit(X, y, sample_weight)
+        return self
+
+    def predict(self, X):
+        return self.w_glm * self.glm.predict(X) + (1 - self.w_glm) * self.gbm.predict(X)
+
+
 # ───────────────────────── distribuzione e intervalli ─────────────────────────
 
 def _nb_params(mu, k):

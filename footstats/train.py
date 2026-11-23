@@ -22,15 +22,17 @@ from .config import (DEFAULT_LEVEL, MODELS_DIR, REPORTS_DIR, STAT_LABELS_IT, STA
                      TEST_SEASONS, TRAIN_LAST_SEASON, VALID_SEASON)
 from .data import load_matches, to_team_rows
 from .features import build_features, feature_columns
-from .models import (CountDistribution, LeagueAverage, PoissonGBM, PoissonGLM, RollingAverage,
-                     StatModel, fit_dispersion)
+from .models import (CountDistribution, Ensemble, LeagueAverage, PoissonGBM, PoissonGLM,
+                     RollingAverage, StatModel, fit_dispersion)
 
 LEVELS = (0.5, 0.6, 0.7, 0.8, 0.9, 0.95)
 
-GLM_GRID = [dict(alpha=a) for a in (1e-4, 1e-3, 1e-2)]
+# Griglie estese dopo aver visto che la validazione sceglieva sempre i valori al bordo
+# (alpha più alto per il GLM, meno alberi per il boosting).
+GLM_GRID = [dict(alpha=a) for a in (1e-4, 1e-3, 1e-2, 1e-1, 3e-1)]
 GBM_GRID = [
     dict(max_iter=it, learning_rate=0.05, max_leaf_nodes=nl, min_samples_leaf=ml)
-    for it in (200, 400) for nl in (7, 15) for ml in (100, 400)
+    for it in (100, 200) for nl in (7, 15) for ml in (100, 400)
 ]
 
 
@@ -78,9 +80,10 @@ def run(verbose: bool = True) -> dict:
         cols = feature_columns(stat)
         y_tr, y_va, y_tv, y_te = (d[f"{stat}_for"].to_numpy(float) for d in (train, valid, trval, test))
         stat_res = {"families": {}}
+        best_overall, chosen_build, test_mu = None, {}, {}
 
-        best_overall = None
-        for fam, builders in _families(stat).items():
+        def evaluate_family(fam, builders):
+            nonlocal best_overall
             # 1) scelta della configurazione migliore della famiglia sulla validazione
             best = None
             for build in builders:
@@ -91,10 +94,11 @@ def run(verbose: bool = True) -> dict:
                 if best is None or score > best[0]:
                     best = (score, build, dist)
             val_score, build, dist = best
+            chosen_build[fam] = build
 
             # 2) test: riaddestro su training+validazione, valuto su stagioni mai viste
             m = build().fit(trval[cols], y_tv)
-            mu_te = m.predict(test[cols])
+            mu_te = test_mu[fam] = m.predict(test[cols])
             test_metrics = _metrics(y_te, mu_te, dist)
             params = getattr(m, "params", None) or ({"alpha": m.alpha} if hasattr(m, "alpha") else {})
             stat_res["families"][fam] = {
@@ -105,6 +109,12 @@ def run(verbose: bool = True) -> dict:
             if best_overall is None or val_score > best_overall[0]:
                 best_overall = (val_score, fam, build, dist)
 
+        for fam, builders in _families(stat).items():
+            evaluate_family(fam, builders)
+        # ensemble: media del miglior GLM e del miglior boosting scelti sopra
+        glm_b, gbm_b = chosen_build["GLM Poisson"], chosen_build["Gradient Boosting"]
+        evaluate_family("Ensemble", [lambda g=glm_b, b=gbm_b: Ensemble(g(), b())])
+
         # 3) modello finale: famiglia scelta in validazione, riaddestrata su tutti i dati
         _, fam, build, dist = best_overall
         y_all = df[f"{stat}_for"].to_numpy(float)
@@ -114,8 +124,7 @@ def run(verbose: bool = True) -> dict:
         results[stat] = stat_res
 
         # serie di test del modello scelto, per i grafici
-        m = build().fit(trval[cols], y_tv)
-        mu_te = m.predict(test[cols])
+        mu_te = test_mu[fam]
         lo, hi = dist.interval(mu_te, DEFAULT_LEVEL)
         stat_res["_test_frame"] = test[["league", "season", "date", "team", "opponent", "is_home"]].assign(
             y=y_te, mu=mu_te, lo=lo, hi=hi)
