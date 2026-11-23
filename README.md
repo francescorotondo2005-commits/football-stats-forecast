@@ -117,6 +117,14 @@ Ogni idea è stata provata solo su stagioni di validazione. Per ciascuna stagion
 
 Sul test, rispetto alla versione precedente: log-score migliore per tutte e sei le statistiche, MAE dei tiri −0,9%, dei falli −0,4% e dei gol −0,2%, con corner, cartellini e tiri in porta praticamente invariati. La calibrazione resta entro 2 punti. Sono guadagni piccoli, coerenti con l'idea che il limite principale sia l'informazione disponibile (formazioni, infortuni), non il modello.
 
+## Esperimento: dalle squadre ai giocatori
+
+Il modello guarda le squadre, ma in campo vanno i giocatori. Per misurare quanto conti sapere **chi gioca**, ho usato i dati aperti Wyscout della stagione 2017-18: 5 campionati, con formazioni ed eventi di ogni giocatore, licenza CC BY 4.0 ([Pappalardo et al., 2019](https://figshare.com/collections/Soccer_match_event_dataset/4415000)). Il modello è lo stesso, addestrato sul girone d'andata e valutato sul ritorno, con e senza il rendimento dei titolari (la loro media ogni 90 minuti nelle partite precedenti). Dettagli in [`reports/player_level.md`](reports/player_level.md), codice in [`experiments/player_level.py`](experiments/player_level.py).
+
+- **Nel complesso le feature sui giocatori non migliorano le previsioni**: tutte le differenze stanno entro ±0,6% e dentro il margine del caso.
+- **Il segnale però c'è dove ci si aspetta.** Quando una squadra cambia almeno 4 titolari (31% delle partite), conoscere la formazione riduce l'errore sui tiri dell'1,1%, e lo scostamento dell'undici dal solito è correlato con l'errore del modello di squadra (+0,08 per i tiri). Per falli e cartellini, invece, chi gioca conta poco.
+- **Con una sola stagione il segnale è troppo debole per essere sfruttato**: servirebbero più stagioni di dati per giocatore.
+
 ## Limiti, onestamente
 
 - **I range sono larghi, e devono esserlo.** Per i tiri dell'Inter contro la Roma un range "stretto" come 15–19 avrebbe solo il **35%** di probabilità. Restringere l'intervallo senza informazioni nuove renderebbe il modello sicuro di sé, non più preciso.
@@ -127,7 +135,7 @@ Sul test, rispetto alla versione precedente: log-score migliore per tutte e sei 
 ## Prossimi passi
 
 - Aggiornamento walk-forward giornata per giornata.
-- Feature sull'arbitro dove disponibile, e sulle formazioni.
+- Feature sulle formazioni con più stagioni di dati per giocatore (vedi l'esperimento sopra), e sull'arbitro dove disponibile.
 - Modello gerarchico (effetti squadra con *shrinkage*) per gestire meglio le neopromosse.
 - Distribuzione congiunta delle due squadre (oggi casa e ospite sono previste separatamente).
 - Una piccola dashboard web.
@@ -140,11 +148,12 @@ Richiede Python 3.10 o successivo.
 pip install -r requirements.txt
 
 python -m footstats download          # scarica i dati in data/raw/ (circa 1 minuto)
-python -m footstats train             # addestra, valuta e scrive reports/ (circa 2 minuti)
+python -m footstats train             # addestra, valuta e scrive reports/ (alcuni minuti)
 python -m footstats predict Inter Roma
 python -m footstats predict Arsenal Chelsea --league premier-league --level 0.5
 
 python -m pytest                      # test
+python experiments/player_level.py    # esperimento sui giocatori (scarica circa 80 MB di dati Wyscout)
 ```
 
 I nomi delle squadre sono quelli di football-data.co.uk ("Inter", "Milan", "Juventus"…); quelli simili vengono riconosciuti automaticamente. `predict` usa le partite più recenti disponibili: per la stagione in corso `download` prova prima la fonte originale, che viene aggiornata durante la stagione.
@@ -162,4 +171,5 @@ footstats/
   predict.py    previsione di una partita
 tests/          test su leakage, dispersione e copertura degli intervalli
 reports/        risultati e grafici della valutazione
+experiments/    esperimento con le formazioni (dati aperti Wyscout 2017-18)
 ```
