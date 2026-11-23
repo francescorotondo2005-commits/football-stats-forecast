@@ -140,6 +140,10 @@ Il modello guarda le squadre, ma in campo vanno i giocatori. Per misurare quanto
 - Distribuzione congiunta delle due squadre (oggi casa e ospite sono previste separatamente).
 - Una piccola dashboard web.
 
+## Storia del progetto
+
+Progetto di aprile 2026. Iniziato a tempo perso, come web-app per le scommesse che usava lo scraping, abbandonata però a giugno. A novembre 2026 l'ho ripreso e l'ho trasformato in questa versione pubblica: previsione delle statistiche con dati scaricabili liberamente.
+
 ## Uso
 
 Richiede Python 3.10 o successivo.
