@@ -65,6 +65,18 @@ def test_future_match_gets_complete_features():
     assert not future[feature_columns("shots")].isna().any().any()
 
 
+@pytest.mark.parametrize("pause_days, new_spell", [(170, False), (400, True)])
+def test_long_break_vs_relegation(pause_days, new_spell):
+    """Uno stop lungo (es. Ligue 1 2019-20, Covid) non cancella la storia; un anno fuori sì."""
+    matches = _synthetic_matches()
+    second_half = matches["date"] >= matches["date"].iloc[30]
+    matches.loc[second_half, "date"] += pd.Timedelta(days=pause_days)
+    feats = build_features(to_team_rows(matches))
+    after = feats["date"] >= matches.loc[second_half, "date"].min()
+    assert (feats.loc[after, "spell"] > 1).all() == new_spell
+    assert (feats.loc[after, "n_prev"] == 0).any() == new_spell
+
+
 def test_opponent_features_come_from_the_opponent():
     feats = build_features(to_team_rows(_synthetic_matches()))
     m = feats[feats.match_id == feats.match_id.iloc[-1]]

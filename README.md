@@ -33,10 +33,10 @@ Valutazione su **2024-25 e 2025-26**, due stagioni mai usate né per l'addestram
 
 | Statistica | Ampiezza media del range 80% | Probabilità dichiarata | Copertura reale |
 |---|---|---|---|
-| Gol | 2,9 | 93,8% | 94,1% |
-| Tiri | 11,3 | 83,8% | 83,5% |
-| Tiri in porta | 5,5 | 87,3% | 87,2% |
-| Falli | 8,8 | 84,6% | 83,5% |
+| Gol | 2,9 | 93,8% | 94,0% |
+| Tiri | 11,3 | 83,8% | 83,3% |
+| Tiri in porta | 5,5 | 87,2% | 87,2% |
+| Falli | 8,8 | 84,6% | 83,6% |
 | Corner | 6,6 | 86,5% | 86,8% |
 | Cartellini | 3,7 | 92,0% | 92,5% |
 
@@ -54,12 +54,12 @@ Errore medio assoluto (MAE) sul test, più basso è meglio:
 
 | Statistica | Media del campionato | Media mobile | GLM Poisson | Gradient Boosting | Miglioramento vs media mobile |
 |---|---|---|---|---|---|
-| Gol | 0,985 | 0,932 | **0,904** | 0,905 | 3,0% |
-| Tiri | 4,115 | 3,768 | **3,555** | 3,573 | 5,2% |
-| Tiri in porta | 1,939 | 1,795 | **1,729** | 1,737 | 3,7% |
-| Falli | 3,194 | 2,851 | 2,827 | **2,821** | 1,1% |
-| Corner | 2,255 | 2,147 | **2,083** | 2,087 | 3,0% |
-| Cartellini | 1,162 | 1,121 | 1,111 | **1,105** | 1,4% |
+| Gol | 0,985 | 0,932 | **0,904** | 0,904 | 3,0% |
+| Tiri | 4,115 | 3,768 | **3,556** | 3,577 | 5,1% |
+| Tiri in porta | 1,939 | 1,795 | **1,729** | 1,739 | 3,7% |
+| Falli | 3,194 | 2,851 | 2,828 | **2,819** | 1,1% |
+| Corner | 2,255 | 2,147 | **2,083** | 2,084 | 3,0% |
+| Cartellini | 1,162 | 1,121 | 1,110 | **1,104** | 1,5% |
 
 La *media mobile* è ciò che farebbe chiunque: metà la media della squadra in attacco, metà la media concessa dall'avversario. I miglioramenti sono reali ma moderati, ed è un risultato atteso: una parte grande della variabilità di una singola partita è rumore che nessun modello può prevedere con questi dati. Il GLM di Poisson, molto più semplice, è alla pari con il gradient boosting.
 
@@ -69,7 +69,7 @@ Dettagli completi in [`reports/results.md`](reports/results.md) e [`reports/resu
 
 **1. Dati.** Statistiche di fine partita da [football-data.co.uk](https://www.football-data.co.uk/), con il mirror pubblico [datasets/football-datasets](https://github.com/datasets/football-datasets) (licenza ODC-PDDL) come alternativa. Ogni partita diventa due righe, una per squadra.
 
-**2. Feature (solo informazioni pre-partita).** Per la squadra e per l'avversario: medie esponenziali delle ultime partite (forma recente e livello di fondo), medie solo in casa o solo in trasferta, quanto produce l'attacco e quanto concede la difesa, media del campionato fino al giorno prima. Una squadra che torna dalla serie inferiore riparte dalla media del campionato invece che dai dati di anni prima.
+**2. Feature (solo informazioni pre-partita).** Per la squadra e per l'avversario: medie esponenziali delle ultime partite (forma recente e livello di fondo), medie solo in casa o solo in trasferta, quanto produce l'attacco e quanto concede la difesa, media del campionato fino al giorno prima. Una squadra che torna dalla serie inferiore riparte dalla media del campionato invece che dai dati di anni prima. Il ritorno si riconosce da una pausa di oltre 300 giorni: uno stop lungo ma interno al campionato, come la Ligue 1 interrotta per il Covid nel 2020 (fino a 194 giorni), non cancella la storia delle squadre.
 
 > Il rischio principale in questi progetti è il *data leakage*: usare senza accorgersene informazioni della partita stessa o di partite future. Un test automatico ([`tests/test_features.py`](tests/test_features.py)) modifica il risultato di una partita e verifica che le sue feature non cambino. Ho controllato che il test fallisca davvero se si introduce un leak.
 

@@ -68,7 +68,7 @@ def write_markdown(results: dict) -> str:
             f"{_pct(t[f'cov_{lvl}'])} | {dist} |"
         )
     text = "\n".join(lines) + "\n"
-    (REPORTS_DIR / "results.md").write_text(text)
+    (REPORTS_DIR / "results.md").write_text(text, encoding="utf-8", newline="\n")
     return text
 
 

@@ -16,7 +16,11 @@ from .config import LEAGUES, STATS
 SHORT_HALFLIFE = 3  # partite: forma recente
 LONG_HALFLIFE = 10  # partite: livello di fondo della squadra
 VENUE_HALFLIFE = 6  # partite giocate nello stesso contesto (solo casa / solo trasferta)
-NEW_SPELL_GAP_DAYS = 150  # pausa più lunga di un'estate = squadra tornata dalla serie inferiore
+# Pausa oltre la quale una squadra riparte senza storia (tornata dalla serie inferiore).
+# Nei dati le pause di chi resta nel campionato arrivano a 194 giorni (Ligue 1 2019-20,
+# interrotta a marzo per il Covid), i ritorni dalla serie inferiore partono da 384:
+# 300 sta a metà di questo intervallo vuoto.
+NEW_SPELL_GAP_DAYS = 300
 
 
 def _ewm_prev(values: pd.Series, keys: list[pd.Series], halflife: float) -> pd.Series:

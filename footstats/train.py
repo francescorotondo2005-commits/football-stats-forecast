@@ -133,5 +133,7 @@ def save_report(results: dict) -> None:
 
     REPORTS_DIR.mkdir(exist_ok=True)
     clean = {s: {k: v for k, v in r.items() if not k.startswith("_")} for s, r in results.items()}
-    (REPORTS_DIR / "results.json").write_text(json.dumps(clean, indent=2, ensure_ascii=False))
+    # encoding esplicito: su Windows il default non è UTF-8 e le lettere accentate si rovinano
+    (REPORTS_DIR / "results.json").write_text(
+        json.dumps(clean, indent=2, ensure_ascii=False), encoding="utf-8", newline="\n")
     write_report(results)
