@@ -48,6 +48,21 @@ Un esempio partita per partita: i tiri dell'Inter nella Serie A 2025-26, che il 
 
 ![Esempio Inter](reports/example_inter_shots.png)
 
+### La calibrazione viene dal metodo, la precisione dal modello
+
+Anche le baseline più semplici producono range calibrati, entro 2 punti a tutti i livelli. Il motivo è che la dispersione *k* viene stimata sulla validazione: un modello che sbaglia di più il valore atteso ottiene un *k* più basso, quindi range più larghi (per i tiri *k* = 11 con la media del campionato, 22 con il modello scelto). La calibrazione è quindi una proprietà del **metodo**. Il contributo del **modello** è un'altra: range **più stretti** a parità di affidabilità.
+
+Ampiezza media del range all'80% sul test:
+
+| Statistica | Media del campionato | Media mobile | Modello scelto | Più stretto vs media mobile |
+|---|---|---|---|---|
+| Gol | 3,0 | 3,0 | 2,9 | 3,4% |
+| Tiri | 13,0 | 12,0 | 11,3 | 6,4% |
+| Tiri in porta | 6,2 | 5,8 | 5,5 | 4,8% |
+| Falli | 10,4 | 8,9 | 8,8 | 1,8% |
+| Corner | 7,0 | 6,8 | 6,6 | 3,0% |
+| Cartellini | 3,8 | 3,8 | 3,7 | 2,0% |
+
 ### Il valore atteso batte le baseline
 
 Errore medio assoluto (MAE) sul test, più basso è meglio:
